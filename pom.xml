@@ -4,14 +4,17 @@
 
 	<groupId>org.springframework</groupId>
 	<artifactId>spring-boot-sample-data-rest</artifactId>
-  <version>0.1.0</version>
-
-  <parent>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-parent</artifactId>
-      <version>1.3.3.RELEASE</version>
-  </parent>
-
+	<version>${revision}</version>
+    <properties>
+        <buildNumber>local</buildNumber>
+        <revision>1.0.0+${buildNumber}</revision>
+        
+    </properties>
+	<parent>
+	  <groupId>org.springframework.boot</groupId>
+	  <artifactId>spring-boot-starter-parent</artifactId>
+	  <version>1.3.3.RELEASE</version>
+	</parent>
 
 
 	<name>Spring Boot Data REST Sample</name>
@@ -57,8 +60,18 @@
 			<artifactId>assertj-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>		
 	</dependencies>
 	<build>
+	    <resources>
+	        <resource>
+	            <directory>src/main/resources</directory>
+	            <filtering>true</filtering>
+	        </resource>
+	    </resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -120,22 +133,29 @@
 			</plugin>
 
 			<plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.1</version>
-          <executions>
-              <execution>
-                  <goals>
-                      <goal>check</goal>
-                  </goals>
-              </execution>
-          </executions>
-          <configuration>
-              <effort>Max</effort><!--檢測的程度，值可為Min、Default或是Max-->
-              <xmlOutput>true</xmlOutput>
-							<failOnError>false</failOnError>
-          </configuration>
-      </plugin>
+	          <groupId>org.codehaus.mojo</groupId>
+	          <artifactId>findbugs-maven-plugin</artifactId>
+	          <version>3.0.1</version>
+	          <executions>
+	              <execution>
+	                  <goals>
+	                      <goal>check</goal>
+	                  </goals>
+	              </execution>
+	          </executions>
+	          <configuration>
+	              <effort>Max</effort><!--檢測的程度，值可為Min、Default或是Max-->
+	              <xmlOutput>true</xmlOutput>
+								<failOnError>false</failOnError>
+	          </configuration>
+    		</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<configuration>
+					<excludeProperties>git.build.user.*,git.commit.user.*,git.remote.*,git.closest.*</excludeProperties>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
