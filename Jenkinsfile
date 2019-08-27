@@ -1,78 +1,63 @@
 pipeline {
-  agent {
-    label "jenkins-gradle"
-  }
-  environment {
-    ORG = 'k8slabtrunksys'
-    APP_NAME = 'java-yourname'
-    CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
-    DOCKER_REGISTRY_ORG = 'k8slabtrunksys'
-  }
+  agent any
   stages {
-    stage('CI Build and push snapshot') {
-      when {
-        branch 'PR-*'
-      }
-      environment {
-        PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
-        PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
-        HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
-      }
+    stage('checkout project') {
       steps {
-        container('gradle') {
-          sh "gradle clean build"
-          sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
-          sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
-          dir('./charts/preview') {
-            sh "make preview"
-            sh "jx preview --app $APP_NAME --dir ../.."
+        checkout scm
+      }
+    }
+    stage('test') {
+      steps {
+        sh 'docker-compose run test'
+      }
+    }
+    stage('report') {
+      parallel {
+        stage('report') {
+          steps {
+            junit 'target/surefire-reports/*.xml'
+          }
+        }
+        stage('coverage') {
+          steps {
+            cobertura(coberturaReportFile: 'target/site/cobertura/coverage.xml')
           }
         }
       }
     }
-    stage('Build Release') {
-      when {
-        branch 'master'
-      }
+    stage('package') {
       steps {
-        container('gradle') {
-
-          // ensure we're not on a detached head
-          sh "git checkout master"
-          sh "git config --global credential.helper store"
-          sh "jx step git credentials"
-
-          // so we can retrieve the version in later steps
-          sh "echo \$(jx-release-version) > VERSION"
-          sh "jx step tag --version \$(cat VERSION)"
-          sh "gradle clean build"
-          sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
-          sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
-        }
+        sh 'docker-compose run package'
       }
     }
-    stage('Promote to Environments') {
-      when {
-        branch 'master'
-      }
+    stage('archive') {
       steps {
-        container('gradle') {
-          dir('./charts/java-yourname') {
-            sh "jx step changelog --version v\$(cat ../../VERSION)"
-
-            // release the helm chart
-            sh "jx step helm release"
-
-            // promote through all 'Auto' promotion Environments
-            sh "jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)"
-          }
-        }
+        archiveArtifacts 'target/spring-boot-sample-data-rest-0.1.0.jar'
+      }
+    }
+    stage('deploy') {
+      steps {
+        sh '''make build-docker-prod-image
+make deploy-production-ssh
+'''
       }
     }
   }
   post {
-        always {
-          cleanWs()
-        }
+    always {
+      sh 'docker-compose run clean'
+      echo 'I will always say Hello again!'
+    }
+
+    success {
+      echo 'success!'
+
+    }
+
+    failure {
+      echo 'failure!'
+
+    }
+
   }
 }

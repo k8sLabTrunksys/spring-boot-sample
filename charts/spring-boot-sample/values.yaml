@@ -14,7 +14,7 @@ env:
 knativeDeploy: false
 
 service:
-  name: java-yourname
+  name: spring-boot-sample
   type: ClusterIP
   externalPort: 80
   internalPort: 8080
