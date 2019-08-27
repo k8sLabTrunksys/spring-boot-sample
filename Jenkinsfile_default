@@ -44,31 +44,7 @@ pipeline {
       steps {
         sh 'mvn package'
       }
-    }
-    stage('stage') {
-        input {
-            message "Should we continue?"
-            ok "Yes, we should."
-            submitter "admin"
-            parameters {
-                string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
-            }
-        }
-        steps {
-            echo "Hello, ${PERSON}, nice to meet you."
-            sh 'make deploy-default'
-        }
-    }
-    stage('preview') {
-        input {
-            message "Should we continue?"
-            ok "Yes, we should."
-            submitter "admin"
-        }
-        steps {
-          echo "every thing is good!"
-        }
-    }    
+    }   
     stage('artifact') {
       steps {
         archiveArtifacts(artifacts: '**/target/*.jar', fingerprint: true)
@@ -82,7 +58,7 @@ pipeline {
   }
   post { 
     always { 
-      echo 'I will always say Hello again!'
+      echo 'job finish '
     }
     success { 
       echo 'success!'
