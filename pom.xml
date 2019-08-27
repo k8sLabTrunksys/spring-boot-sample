@@ -7,7 +7,8 @@
 	<version>${revision}</version>
     <properties>
         <buildNumber>local</buildNumber>
-        <revision>0.1.0+${buildNumber}</revision>
+        <!-- <revision>0.1.0+${buildNumber}</revision> -->
+		<revision>0.1.0</revision>
         
     </properties>
 	<parent>
